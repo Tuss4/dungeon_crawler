@@ -8,7 +8,10 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
+<<<<<<< HEAD
 bin/
+=======
+>>>>>>> Setting up my classes, and game logic.
 build/
 develop-eggs/
 dist/
@@ -36,6 +39,7 @@ coverage.xml
 
 # Translations
 *.mo
+<<<<<<< HEAD
 
 # Mr Developer
 .mr.developer.cfg
@@ -48,6 +52,12 @@ coverage.xml
 # Django stuff:
 *.log
 *.pot
+=======
+*.pot
+
+# Django stuff:
+*.log
+>>>>>>> Setting up my classes, and game logic.
 
 # Sphinx documentation
 docs/_build/
