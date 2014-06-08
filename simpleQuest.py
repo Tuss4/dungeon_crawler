@@ -120,11 +120,19 @@ class Map:
 
 def main():
     '''This function runs the game.'''
+    title = '''
+            ##################################
+            ###                            ###
+            ###   SIMPLE QUEST THE GAME    ###
+            ###                            ###
+            ##################################
+            '''
     # Initialize our Map.
     m = Map()
 
     # Initialize player and spawn them in a
     # random room.
+    print title
     player_name = raw_input('Enter your name: ')
     spawn_rooms = m.ALL
     spawn_rooms.remove(m.c)
@@ -143,7 +151,7 @@ def main():
                 door = raw_input()
                 print player.move(door)
             else:
-                print 'Time for a rest! THE GRUE\'S ABOUT TO MAKE A MOVE!'
+                print 'Time for a rest! THE GRUE\'S GETTING CLOSER!'
                 player.turns +=1
     else:
         main()
