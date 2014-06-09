@@ -1,4 +1,10 @@
-'''Simple Quest
+'''
+##################################
+###                            ###
+###   SIMPLE QUEST THE GAME    ###
+###                            ###
+##################################
+
 Date: 6/6/2014
 Author: Tomjo Soptame
 Description: Sleepy Giant code challenge game.
@@ -16,6 +22,8 @@ class Player:
     def __init__(self, name, room=None):
         self.name = name
         self.room = room
+        if self.room:
+            self.room.has_player = True
         self.gems = 0
         self.turns = 0
 
@@ -37,6 +45,17 @@ class Player:
         else:
             return "Sorry you can't move that way," +\
                    "try a different direction."
+
+    # You get attacked by the Grue.
+    # Oh noes.
+    def death(self, rooms):
+        self.gems = 0
+        self.room.has_player = False
+        new_room = random.choice(rooms.ALL)
+        self.room = new_room
+        self.room.has_player = True
+        return 'Game Over. You died. Re-spawning in %s with 0 gems.' %\
+               (self.room)
 
 
 class Room:
@@ -80,9 +99,26 @@ class Grue(Player):
     location. Moves every rest turn. If the Grue flees
     it drops a gem.'''
 
-    # Initialize a Grue with 5 gems.
-    def __init__(self):
+    # Initialize a Grue with 5 gems and a spawn room.
+    def __init__(self, room=None):
         self.gems = 5
+        self.room = room
+        if self.room:
+            self.room.has_grue = True
+
+    # If a player actively enters a room containing a grue,
+    # the grue will flee leaving a gem behind.
+    def flee(self, player):
+        room = self.room
+        self.room.has_grue = False
+        self.gems -= 1
+        player.gems += 1
+        new_room = room.all_exits[random.choice(room.all_exits.keys())]
+        new_room.has_grue = True
+        self.room = new_room
+
+        return '{}, you just picked up a gem. Careful a grue must be nearby!'.\
+               format(player.name) + ' You have {} gem(s).'.format(player.gems)
 
 
 class Map:
@@ -118,8 +154,30 @@ class Map:
         return pprint.pprint([{i.name: i.get_exits()} for i in rooms])
 
 
+def grue_spawn_room(player_room):
+    '''Generate a random room for the Grue to spawn in,
+    based upon the player's spawn room.'''
+
+    # Set the level one exit key
+    level_one_key = random.choice(player_room.all_exits.keys())
+
+    # Set the first random room
+    level_one_room = player_room.all_exits[level_one_key]
+
+    # Set the second exit key
+    grue_room_key = random.choice(level_one_room.all_exits.keys())
+
+    # Set the grue room!
+    grue_room = level_one_room.all_exits[grue_room_key]
+
+    # Return it!
+    return grue_room
+
+
 def main():
     '''This function runs the game.'''
+
+    # Stylized title, yo!
     title = '''
             ##################################
             ###                            ###
@@ -135,24 +193,36 @@ def main():
     print title
     player_name = raw_input('Enter your name: ')
     spawn_rooms = m.ALL
-    spawn_rooms.remove(m.c)
+    # spawn_rooms.remove(m.c)
     if player_name != "":
         player = Player(player_name, random.choice(spawn_rooms))
-        player.room.has_player = True
         print "Welcome, %s! You are currently in: %s Room." %\
               (player.name, player.room.name)
-        print player.turns
+        grue = Grue(grue_spawn_room(player.room))
+        print grue.room
 
         # As long as the conditions for winning have
         # not been met, the game will continue.
         while player.gems < 5:
             if player.turns % 4 != 0 or player.turns == 0:
+                if player.room.has_grue:
+                    print grue.flee(player)
+                    print 'Move carefully... Type: n, s, e, w:'
+                    door = raw_input()
+                    print player.move(door)
                 print 'Make a move! Remember type: n, s, e, w to try a door.'
                 door = raw_input()
                 print player.move(door)
             else:
                 print 'Time for a rest! THE GRUE\'S GETTING CLOSER!'
-                player.turns +=1
+                player.turns = 0
+        if player.gems == 5:
+            if player.room == m.c:
+                print "YOU WON! Congratulations, {}!\nHit ^D to quit.".\
+                      format(player.name)
+            else:
+                print "{0}, you have {1} gems. Find the Cobalt room!".\
+                      format(player.name, player.gems)
     else:
         main()
 
