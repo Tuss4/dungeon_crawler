@@ -154,6 +154,14 @@ class Map:
         return pprint.pprint([{i.name: i.get_exits()} for i in rooms])
 
 
+def bsf_path(map, grue_room, player_room):
+    '''
+    Using a Breadth First Search algorithm to compute the shortest
+    path to the player's room for the grue.
+    '''
+    pass
+
+
 def grue_spawn_room(player_room):
     '''Generate a random room for the Grue to spawn in,
     based upon the player's spawn room.'''
