@@ -261,7 +261,7 @@ def game_status(status, player=None, map=None):
         print 'The Grue is getting closer.'
     elif status == 'victory':
         print '''
-              YOU WON! Congratulations, {}!\nHit ^D to quit.
+              YOU WON! Congratulations, {}!
               '''.format(player.name)
     elif status == 'teleport':
         print '''
@@ -295,6 +295,66 @@ def player_input(output_text, player=None):
               {0}, you\'ve moved quite a bit. Rest up.
               You currently have: {1} gem(s).
               '''.format(player.name, player.gems)
+
+
+def pre_gems(player, grue, map):
+    '''This function concerns the first half of the game
+    where the player doesn't have 5 gems, or if the player
+    had 5 gems but ran into the Grue and was forced to
+    respawn.'''
+
+    while player.gems < 5:
+        if player_can_move(player):
+            if player.room.has_grue:
+                print grue.flee(player)
+                player_input('grue')
+                door = raw_input()
+                print player.move(door)
+            player_input('move')
+            door = raw_input()
+            print player.move(door)
+        else:
+            player_input('rest', player)
+            next_room = get_path_room(map.graph, grue.room, player.room)
+            grue.move(next_room)
+            if grue.room.has_player:
+                game_status('ohno')
+                print player.death(m)
+            else:
+                game_status('close')
+            player.turns = 0
+
+
+def post_gems(player, grue, map):
+    '''Time for the player to get to that
+    teleportation room without dying.'''
+
+    while player.gems == 5:
+        if player_can_move(player):
+            if player.room.has_grue:
+                print grue.flee(player)
+                player_input('grue')
+                door = raw_input()
+                print player.move(door)
+            player_input('get to the teleporta')
+            door = raw_input()
+            print player.move(door)
+            if player.room == map.TELEPORTATION_ROOM:
+                game_status('victory', player)
+                break
+            else:
+                game_status('teleport', player, map)
+        else:
+            player_input('rest', player)
+            next_room = get_path_room(map.graph, grue.room, player.room)
+            grue.move(next_room)
+            if grue.room.has_player:
+                game_status('ohno')
+                print player.death(map)
+                pre_gems(player, grue, map)
+            else:
+                game_status('close')
+            player.turns = 0
 
 
 def main():
