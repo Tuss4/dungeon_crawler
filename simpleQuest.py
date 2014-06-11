@@ -6,7 +6,7 @@
 ##################################
 
 Start Date: 6/6/2014
-Finish Date: 6/10/2014
+Finish Date: 6/11/2014
 Author: Tomjo Soptame
 Description: Sleepy Giant code challenge game.
 '''
@@ -178,6 +178,22 @@ class Map:
         return pprint.pprint([{i.name: i.get_exits()} for i in rooms])
 
 
+def get_path_room(map, grue_room, player_room):
+    '''
+    Based off bfs_path function. Takes it a
+    step further by implementing the logic to
+    get the next room in the Grue's path.
+    '''
+
+    path = bfs_path(map, grue_room, player_room)
+    # Uncomment the next line to see the Grue's path.
+    # print path
+    path_room = path[0]
+    if len(path) > 1:
+        path_room = path[1]
+    return path_room
+
+
 def bfs_path(map, grue_room, player_room):
     '''
     Using a Breadth First Search algorithm to compute the shortest
@@ -305,13 +321,8 @@ def main():
                 print player.move(door)
             else:
                 player_input('rest', player)
-                path = bfs_path(m.graph, grue.room, player.room)
-                # Uncomment the next line to see the Grue's path.
-                # print path
-                path_room = path[0]
-                if len(path) > 1:
-                    path_room = path[1]
-                grue.move(path_room)
+                next_room = get_path_room(m.graph, grue.room, player.room)
+                grue.move(next_room)
                 if grue.room.has_player:
                     game_status('ohno')
                     print player.death(m)
