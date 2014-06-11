@@ -115,13 +115,14 @@ class Grue(Player):
             if v == room:
                 return k
 
+    # Override the inherited move function
+    # to account for the BFS algorithm.
     def move(self, path_room):
         door = self.room_to_exit(path_room)
         self.room.has_grue = False
         new_room = self.room.all_exits[door]
         new_room.has_grue = True
         self.room = new_room
-        # return 'The Grue is getting closer.'
 
     # If a player actively enters a room containing a grue,
     # the grue will flee leaving a gem behind.
@@ -220,6 +221,25 @@ def grue_spawn_room(player_room):
     return grue_room
 
 
+def game_status(status, player=None, map=None):
+    '''Print out a game status message.'''
+
+    if status == 'ohno':
+        print 'OH NO... It\'S THE GRUE!'
+    elif status == 'close':
+        print 'The Grue is getting closer.'
+    elif status == 'victory':
+        print '''
+              YOU WON! Congratulations, {}!\nHit ^D to quit.
+              '''.format(player.name)
+    elif status == 'teleport':
+        print '''
+              {0}, you have {1} gems. Find the {2} room!
+              '''.format(player.name,
+                         player.gems,
+                         map.TELEPORTATION_ROOM)
+
+
 def player_can_move(player):
     '''Function to make sure the player has the ability to take a turn.'''
 
@@ -286,28 +306,25 @@ def main():
             else:
                 player_input('rest', player)
                 path = bfs_path(m.graph, grue.room, player.room)
-                print path
+                # Uncomment the next line to see the Grue's path.
+                # print path
                 path_room = path[0]
                 if len(path) > 1:
                     path_room = path[1]
                 grue.move(path_room)
                 if grue.room.has_player:
-                    print "OH NO... IT'S THE GRUE!"
+                    game_status('ohno')
                     print player.death(m)
                 else:
-                    print 'The Grue is getting closer.'
+                    game_status('close')
                 player.turns = 0
 
         if player.gems == 5:
             if player_can_move(player):
                 if player.room == m.TELEPORTATION_ROOM:
-                    print "YOU WON! Congratulations, {}!\nHit ^D to quit.".\
-                          format(player.name)
+                    game_status('victory', player)
                 else:
-                    print "{0}, you have {1} gems. Find the {2} room!".\
-                          format(player.name,
-                                 player.gems,
-                                 m.TELEPORTATION_ROOM)
+                    game_status('teleport', player, m)
             else:
                 player_input('rest', player)
                 player.turns = 0
