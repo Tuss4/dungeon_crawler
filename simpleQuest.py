@@ -136,7 +136,8 @@ class Grue(Player):
             new_room.has_grue = True
             self.room = new_room
             return '''
-                   {0}, you just picked up a gem. Careful a Grue must be nearby!
+                   {0}, you just picked up a gem.
+                   Careful a Grue must be nearby!
                    You have {1} gem(s).
                    '''.format(player.name, player.gems)
         else:
@@ -319,7 +320,7 @@ def pre_gems(player, grue, map):
             grue.move(next_room)
             if grue.room.has_player:
                 game_status('ohno')
-                print player.death(m)
+                print player.death(map)
             else:
                 game_status('close')
             player.turns = 0
@@ -382,55 +383,13 @@ def main():
         print "Welcome, %s! You are currently in: %s Room." %\
               (player.name, player.room.name)
         grue = Grue(grue_spawn_room(player.room))
-        print grue.room
-
         # As long as the conditions for winning have
         # not been met, the game will continue.
-        while player.gems < 5:
-            if player_can_move(player):
-                if player.room.has_grue:
-                    print grue.flee(player)
-                    player_input('grue')
-                    door = raw_input()
-                    print player.move(door)
-                player_input('move')
-                door = raw_input()
-                print player.move(door)
-            else:
-                player_input('rest', player)
-                next_room = get_path_room(m.graph, grue.room, player.room)
-                grue.move(next_room)
-                if grue.room.has_player:
-                    game_status('ohno')
-                    print player.death(m)
-                else:
-                    game_status('close')
-                player.turns = 0
+        # The player doesn't have 5 gems
+        pre_gems(player, grue, m)
 
-        if player.gems == 5:
-            if player_can_move(player):
-                if player.room.has_grue:
-                    print grue.flee(player)
-                    player_input('grue')
-                    door = raw_input()
-                    print player.move(door)
-                player_input('get to the teleporta')
-                door = raw_input()
-                print player.move(door)
-                if player.room == m.TELEPORTATION_ROOM:
-                    game_status('victory', player)
-                else:
-                    game_status('teleport', player, m)
-            else:
-                player_input('rest', player)
-                next_room = get_path_room(m.graph, grue.room, player.room)
-                grue.move(next_room)
-                if grue.room.has_player:
-                    game_status('ohno')
-                    print player.death(m)
-                else:
-                    game_status('close')
-                player.turns = 0
+        # The player has 5 gems
+        post_gems(player, grue, m)
     else:
         main()
 

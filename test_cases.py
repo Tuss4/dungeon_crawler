@@ -1,19 +1,27 @@
+'''
+##################################
+###                            ###
+###   SIMPLE QUEST THE GAME    ###
+###                            ###
+##################################
+
+Start Date: 6/6/2014
+Finish Date: 6/11/2014
+Author: Tomjo Soptame
+Description: Testing scenarios for what happens
+if the player has 5 gems.
+'''
 import random
 
-from simpleQuest import (Player, Grue,
-                         Room, Map,
-                         player_input,
-                         player_can_move,
-                         game_status,
+from simpleQuest import (Player, Grue, Map,
                          grue_spawn_room,
-                         bfs_path,
-                         get_path_room,
                          pre_gems,
                          post_gems)
 
 
 test_player = Player('Bacon Lord 53')
 test_player.gems = 5
+
 
 def test_cases(player):
     '''This function runs the game.'''
