@@ -5,7 +5,8 @@
 ###                            ###
 ##################################
 
-Date: 6/6/2014
+Start Date: 6/6/2014
+Finish Date: 6/10/2014
 Author: Tomjo Soptame
 Description: Sleepy Giant code challenge game.
 '''
@@ -106,7 +107,7 @@ class Grue(Player):
         if self.room:
             self.room.has_grue = True
 
-    # Using the path of rooms returned from 
+    # Using the path of rooms returned from
     # BFS algorithm turn that room into a door key
     # in the exit dictionary.
     def room_to_exit(self, room):
@@ -121,7 +122,6 @@ class Grue(Player):
         new_room.has_grue = True
         self.room = new_room
         # return 'The Grue is getting closer.'
-
 
     # If a player actively enters a room containing a grue,
     # the grue will flee leaving a gem behind.
@@ -162,6 +162,9 @@ class Map:
     v.set_exits(None, a, o)
     c.set_exits(v, b, None, v)
 
+    # Set the teleportation room
+    TELEPORTATION_ROOM = c  # Default is set to Cobalt.
+
     # Return every room instance in map.
     ALL = [a, o, b, cr, e, l, vl, v, c]
 
@@ -182,6 +185,7 @@ def bfs_path(map, grue_room, player_room):
     BFS Algorithm Python implementation adapted from StackOverflow answer:
     http://stackoverflow.com/a/8922151/1781091
     '''
+
     queue = []
 
     queue.append([grue_room])
@@ -216,6 +220,30 @@ def grue_spawn_room(player_room):
     return grue_room
 
 
+def player_can_move(player):
+    '''Function to make sure the player has the ability to take a turn.'''
+
+    if player.turns % 4 != 0 or player.turns == 0:
+        return True
+    else:
+        return False
+
+
+def player_input(output_text, player=None):
+    '''Standard output prompt for player turns.'''
+
+    instructions = ' Type: n, s, e, w:'
+    if output_text == 'move':
+        print 'Make a move!{}'.format(instructions)
+    elif output_text == 'grue':
+        print 'Move carefully, the grue is near!{}'.format(instructions)
+    elif output_text == 'rest':
+        print '''
+              {0}, you\'ve moved quite a bit. Rest up.
+              You currently have: {1} gem(s).
+              '''.format(player.name, player.gems)
+
+
 def main():
     '''This function runs the game.'''
 
@@ -246,31 +274,43 @@ def main():
         # As long as the conditions for winning have
         # not been met, the game will continue.
         while player.gems < 5:
-            if player.turns % 4 != 0 or player.turns == 0:
+            if player_can_move(player):
                 if player.room.has_grue:
                     print grue.flee(player)
-                    print 'Move carefully... Type: n, s, e, w:'
+                    player_input('grue')
                     door = raw_input()
                     print player.move(door)
-                print 'Make a move! Remember type: n, s, e, w to try a door.'
+                player_input('move')
                 door = raw_input()
                 print player.move(door)
             else:
-                print 'Time for a rest! THE GRUE\'S GETTING CLOSER!'
-                path_room = bfs_path(m.graph, grue.room, player.room)[1]
-                print grue.move(path_room)
+                player_input('rest', player)
+                path = bfs_path(m.graph, grue.room, player.room)
+                print path
+                path_room = path[0]
+                if len(path) > 1:
+                    path_room = path[1]
+                grue.move(path_room)
                 if grue.room.has_player:
+                    print "OH NO... IT'S THE GRUE!"
                     print player.death(m)
                 else:
                     print 'The Grue is getting closer.'
                 player.turns = 0
+
         if player.gems == 5:
-            if player.room == m.c:
-                print "YOU WON! Congratulations, {}!\nHit ^D to quit.".\
-                      format(player.name)
+            if player_can_move(player):
+                if player.room == m.TELEPORTATION_ROOM:
+                    print "YOU WON! Congratulations, {}!\nHit ^D to quit.".\
+                          format(player.name)
+                else:
+                    print "{0}, you have {1} gems. Find the {2} room!".\
+                          format(player.name,
+                                 player.gems,
+                                 m.TELEPORTATION_ROOM)
             else:
-                print "{0}, you have {1} gems. Find the Cobalt room!".\
-                      format(player.name, player.gems)
+                player_input('rest', player)
+                player.turns = 0
     else:
         main()
 
