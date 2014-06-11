@@ -127,16 +127,31 @@ class Grue(Player):
     # If a player actively enters a room containing a grue,
     # the grue will flee leaving a gem behind.
     def flee(self, player):
-        room = self.room
-        self.room.has_grue = False
-        self.gems -= 1
-        player.gems += 1
-        new_room = room.all_exits[random.choice(room.all_exits.keys())]
-        new_room.has_grue = True
-        self.room = new_room
-
-        return '{}, you just picked up a gem. Careful a grue must be nearby!'.\
-               format(player.name) + ' You have {} gem(s).'.format(player.gems)
+        if player.gems < 5:
+            room = self.room
+            self.room.has_grue = False
+            self.gems -= 1
+            player.gems += 1
+            new_room = room.all_exits[random.choice(room.all_exits.keys())]
+            new_room.has_grue = True
+            self.room = new_room
+            return '''
+                   {0}, you just picked up a gem. Careful a Grue must be nearby!
+                   You have {1} gem(s).
+                   '''.format(player.name, player.gems)
+        else:
+            # Flee conditions for when the player has 5 gems.
+            # Player shouldn't collect any more.
+            room = self.room
+            self.room.has_grue = False
+            self.gems -= 1
+            new_room = room.all_exits[random.choice(room.all_exits.keys())]
+            new_room.has_grue = True
+            self.room = new_room
+            return '''
+                   {}, you have 5 gems. You can't collect anymore. Careful,
+                   a Grue must be nearby!.
+                   '''.format(player.name)
 
 
 class Map:
@@ -273,6 +288,8 @@ def player_input(output_text, player=None):
         print 'Make a move!{}'.format(instructions)
     elif output_text == 'grue':
         print 'Move carefully, the grue is near!{}'.format(instructions)
+    elif output_text == 'get to the teleporta':
+        print '#ArnoldVoice: Get to the teleportah!{}'.format(instructions)
     elif output_text == 'rest':
         print '''
               {0}, you\'ve moved quite a bit. Rest up.
@@ -332,12 +349,27 @@ def main():
 
         if player.gems == 5:
             if player_can_move(player):
+                if player.room.has_grue:
+                    print grue.flee(player)
+                    player_input('grue')
+                    door = raw_input()
+                    print player.move(door)
+                player_input('get to the teleporta')
+                door = raw_input()
+                print player.move(door)
                 if player.room == m.TELEPORTATION_ROOM:
                     game_status('victory', player)
                 else:
                     game_status('teleport', player, m)
             else:
                 player_input('rest', player)
+                next_room = get_path_room(m.graph, grue.room, player.room)
+                grue.move(next_room)
+                if grue.room.has_player:
+                    game_status('ohno')
+                    print player.death(m)
+                else:
+                    game_status('close')
                 player.turns = 0
     else:
         main()
