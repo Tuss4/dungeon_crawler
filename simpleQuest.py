@@ -106,6 +106,23 @@ class Grue(Player):
         if self.room:
             self.room.has_grue = True
 
+    # Using the path of rooms returned from 
+    # BFS algorithm turn that room into a door key
+    # in the exit dictionary.
+    def room_to_exit(self, room):
+        for k, v in self.room.all_exits.iteritems():
+            if v == room:
+                return k
+
+    def move(self, path_room):
+        door = self.room_to_exit(path_room)
+        self.room.has_grue = False
+        new_room = self.room.all_exits[door]
+        new_room.has_grue = True
+        self.room = new_room
+        # return 'The Grue is getting closer.'
+
+
     # If a player actively enters a room containing a grue,
     # the grue will flee leaving a gem behind.
     def flee(self, player):
@@ -148,18 +165,35 @@ class Map:
     # Return every room instance in map.
     ALL = [a, o, b, cr, e, l, vl, v, c]
 
+    # Graph of map
+    graph = {r: [[k, v] for k, v in r.all_exits.iteritems()]for r in ALL}
+
     # Return all exits in the map. Rooms are dict keys.
     @staticmethod
     def all_exits(rooms):
         return pprint.pprint([{i.name: i.get_exits()} for i in rooms])
 
 
-def bsf_path(map, grue_room, player_room):
+def bfs_path(map, grue_room, player_room):
     '''
     Using a Breadth First Search algorithm to compute the shortest
     path to the player's room for the grue.
+
+    BFS Algorithm Python implementation adapted from StackOverflow answer:
+    http://stackoverflow.com/a/8922151/1781091
     '''
-    pass
+    queue = []
+
+    queue.append([grue_room])
+    while queue:
+        path = queue.pop(0)
+        node = path[-1]
+        if node == player_room:
+            return path
+        for adj in map.get(node, []):
+            new_path = list(path)
+            new_path.append(adj[1])
+            queue.append(new_path)
 
 
 def grue_spawn_room(player_room):
@@ -223,6 +257,12 @@ def main():
                 print player.move(door)
             else:
                 print 'Time for a rest! THE GRUE\'S GETTING CLOSER!'
+                path_room = bfs_path(m.graph, grue.room, player.room)[1]
+                print grue.move(path_room)
+                if grue.room.has_player:
+                    print player.death(m)
+                else:
+                    print 'The Grue is getting closer.'
                 player.turns = 0
         if player.gems == 5:
             if player.room == m.c:
