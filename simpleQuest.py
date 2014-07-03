@@ -8,7 +8,7 @@
 Start Date: 6/6/2014
 Finish Date: 6/11/2014
 Author: Tomjo Soptame
-Description: Sleepy Giant code challenge game.
+Description: A dungeon crawler!
 '''
 
 import random
